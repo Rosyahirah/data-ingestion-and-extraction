@@ -1,1 +1,347 @@
-
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyPwKPVYaSG3ppYpMfSgWGB4",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Rosyahirah/data-ingestion-and-extraction/blob/main/Output\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from google.colab import auth\n",
+        "auth.authenticate_user()\n"
+      ],
+      "metadata": {
+        "id": "ELFTngPoe0Kb"
+      },
+      "execution_count": 4,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!pip install --upgrade google-cloud-bigquery[pandas]\n",
+        "from google.cloud import bigquery\n",
+        "import pandas as pd\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 776
+        },
+        "id": "0n5Jzx2Ke4XG",
+        "outputId": "27c64157-0b3a-4a09-a10b-ca0c040f12c2"
+      },
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Requirement already satisfied: google-cloud-bigquery[pandas] in /usr/local/lib/python3.10/dist-packages (3.12.0)\n",
+            "Collecting google-cloud-bigquery[pandas]\n",
+            "  Downloading google_cloud_bigquery-3.13.0-py2.py3-none-any.whl (222 kB)\n",
+            "\u001b[2K     \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m222.8/222.8 kB\u001b[0m \u001b[31m4.6 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hRequirement already satisfied: grpcio<2.0dev,>=1.47.0 in /usr/local/lib/python3.10/dist-packages (from google-cloud-bigquery[pandas]) (1.59.2)\n",
+            "Requirement already satisfied: google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0dev,>=1.31.5 in /usr/local/lib/python3.10/dist-packages (from google-cloud-bigquery[pandas]) (2.11.1)\n",
+            "Requirement already satisfied: proto-plus<2.0.0dev,>=1.15.0 in /usr/local/lib/python3.10/dist-packages (from google-cloud-bigquery[pandas]) (1.22.3)\n",
+            "Requirement already satisfied: google-cloud-core<3.0.0dev,>=1.6.0 in /usr/local/lib/python3.10/dist-packages (from google-cloud-bigquery[pandas]) (2.3.3)\n",
+            "Requirement already satisfied: google-resumable-media<3.0dev,>=0.6.0 in /usr/local/lib/python3.10/dist-packages (from google-cloud-bigquery[pandas]) (2.6.0)\n",
+            "Requirement already satisfied: packaging>=20.0.0 in /usr/local/lib/python3.10/dist-packages (from google-cloud-bigquery[pandas]) (23.2)\n",
+            "Requirement already satisfied: protobuf!=3.20.0,!=3.20.1,!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<5.0.0dev,>=3.19.5 in /usr/local/lib/python3.10/dist-packages (from google-cloud-bigquery[pandas]) (3.20.3)\n",
+            "Requirement already satisfied: python-dateutil<3.0dev,>=2.7.2 in /usr/local/lib/python3.10/dist-packages (from google-cloud-bigquery[pandas]) (2.8.2)\n",
+            "Requirement already satisfied: requests<3.0.0dev,>=2.21.0 in /usr/local/lib/python3.10/dist-packages (from google-cloud-bigquery[pandas]) (2.31.0)\n",
+            "Requirement already satisfied: pandas>=1.1.0 in /usr/local/lib/python3.10/dist-packages (from google-cloud-bigquery[pandas]) (1.5.3)\n",
+            "Requirement already satisfied: pyarrow>=3.0.0 in /usr/local/lib/python3.10/dist-packages (from google-cloud-bigquery[pandas]) (9.0.0)\n",
+            "Requirement already satisfied: db-dtypes<2.0.0dev,>=0.3.0 in /usr/local/lib/python3.10/dist-packages (from google-cloud-bigquery[pandas]) (1.1.1)\n",
+            "Requirement already satisfied: numpy>=1.16.6 in /usr/local/lib/python3.10/dist-packages (from db-dtypes<2.0.0dev,>=0.3.0->google-cloud-bigquery[pandas]) (1.23.5)\n",
+            "Requirement already satisfied: googleapis-common-protos<2.0.dev0,>=1.56.2 in /usr/local/lib/python3.10/dist-packages (from google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0dev,>=1.31.5->google-cloud-bigquery[pandas]) (1.61.0)\n",
+            "Requirement already satisfied: google-auth<3.0.dev0,>=2.14.1 in /usr/local/lib/python3.10/dist-packages (from google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0dev,>=1.31.5->google-cloud-bigquery[pandas]) (2.23.4)\n",
+            "Requirement already satisfied: grpcio-status<2.0.dev0,>=1.33.2 in /usr/local/lib/python3.10/dist-packages (from google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0dev,>=1.31.5->google-cloud-bigquery[pandas]) (1.48.2)\n",
+            "Requirement already satisfied: google-crc32c<2.0dev,>=1.0 in /usr/local/lib/python3.10/dist-packages (from google-resumable-media<3.0dev,>=0.6.0->google-cloud-bigquery[pandas]) (1.5.0)\n",
+            "Requirement already satisfied: pytz>=2020.1 in /usr/local/lib/python3.10/dist-packages (from pandas>=1.1.0->google-cloud-bigquery[pandas]) (2023.3.post1)\n",
+            "Requirement already satisfied: six>=1.5 in /usr/local/lib/python3.10/dist-packages (from python-dateutil<3.0dev,>=2.7.2->google-cloud-bigquery[pandas]) (1.16.0)\n",
+            "Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.10/dist-packages (from requests<3.0.0dev,>=2.21.0->google-cloud-bigquery[pandas]) (3.3.2)\n",
+            "Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.10/dist-packages (from requests<3.0.0dev,>=2.21.0->google-cloud-bigquery[pandas]) (3.4)\n",
+            "Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.10/dist-packages (from requests<3.0.0dev,>=2.21.0->google-cloud-bigquery[pandas]) (2.0.7)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.10/dist-packages (from requests<3.0.0dev,>=2.21.0->google-cloud-bigquery[pandas]) (2023.7.22)\n",
+            "Requirement already satisfied: cachetools<6.0,>=2.0.0 in /usr/local/lib/python3.10/dist-packages (from google-auth<3.0.dev0,>=2.14.1->google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0dev,>=1.31.5->google-cloud-bigquery[pandas]) (5.3.2)\n",
+            "Requirement already satisfied: pyasn1-modules>=0.2.1 in /usr/local/lib/python3.10/dist-packages (from google-auth<3.0.dev0,>=2.14.1->google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0dev,>=1.31.5->google-cloud-bigquery[pandas]) (0.3.0)\n",
+            "Requirement already satisfied: rsa<5,>=3.1.4 in /usr/local/lib/python3.10/dist-packages (from google-auth<3.0.dev0,>=2.14.1->google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0dev,>=1.31.5->google-cloud-bigquery[pandas]) (4.9)\n",
+            "Requirement already satisfied: pyasn1<0.6.0,>=0.4.6 in /usr/local/lib/python3.10/dist-packages (from pyasn1-modules>=0.2.1->google-auth<3.0.dev0,>=2.14.1->google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0dev,>=1.31.5->google-cloud-bigquery[pandas]) (0.5.0)\n",
+            "Installing collected packages: google-cloud-bigquery\n",
+            "  Attempting uninstall: google-cloud-bigquery\n",
+            "    Found existing installation: google-cloud-bigquery 3.12.0\n",
+            "    Uninstalling google-cloud-bigquery-3.12.0:\n",
+            "      Successfully uninstalled google-cloud-bigquery-3.12.0\n",
+            "Successfully installed google-cloud-bigquery-3.13.0\n"
+          ]
+        },
+        {
+          "output_type": "display_data",
+          "data": {
+            "application/vnd.colab-display-data+json": {
+              "pip_warning": {
+                "packages": [
+                  "google"
+                ]
+              }
+            }
+          },
+          "metadata": {}
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from google.colab import auth\n",
+        "auth.authenticate_user()\n",
+        "\n",
+        "from google.cloud import bigquery\n",
+        "\n",
+        "project_id = \"my-data-project-32134\"\n",
+        "client = bigquery.Client(project=project_id)\n"
+      ],
+      "metadata": {
+        "id": "Ww1XW8GJgOex"
+      },
+      "execution_count": 4,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "customers_table_query = \"\"\"\n",
+        "CREATE TABLE python.customers (\n",
+        "    id INT64,\n",
+        "    name STRING NOT NULL,\n",
+        "    email STRING,\n",
+        "    tel STRING,\n",
+        "    created_at DATETIME,\n",
+        "    updated_at DATETIME\n",
+        ")\n",
+        "\"\"\"\n",
+        "\n",
+        "invoices_table_query = \"\"\"\n",
+        "CREATE TABLE python.invoices (\n",
+        "    id INT64,\n",
+        "    number STRING NOT NULL,\n",
+        "    sub_total FLOAT64,\n",
+        "    tax_total FLOAT64,\n",
+        "    total FLOAT64,\n",
+        "    customer_id INT64,\n",
+        "    created_at DATETIME,\n",
+        "    updated_at DATETIME\n",
+        ")\n",
+        "\"\"\"\n",
+        "\n",
+        "invoice_lines_table_query = \"\"\"\n",
+        "CREATE TABLE python.invoice_lines (\n",
+        "    id INT64,\n",
+        "    description STRING,\n",
+        "    unit_price FLOAT64,\n",
+        "    quantity INT64,\n",
+        "    sub_total FLOAT64,\n",
+        "    tax_total FLOAT64,\n",
+        "    total FLOAT64,\n",
+        "    tax_id INT64,\n",
+        "    sku_id INT64,\n",
+        "    invoice_id INT64\n",
+        ")\n",
+        "\"\"\"\n",
+        "\n",
+        "tables = [customers_table_query, invoices_table_query, invoice_lines_table_query]\n",
+        "\n",
+        "for table_query in tables:\n",
+        "    query_job = client.query(table_query)\n",
+        "    query_job.result()"
+      ],
+      "metadata": {
+        "id": "KTeZq0KSiyOZ"
+      },
+      "execution_count": 11,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "customers_data = \"\"\"\n",
+        "INSERT INTO data_questionnaire.customers (id, name, email, tel, created_at, updated_at)\n",
+        "VALUES\n",
+        "    (1, 'Irfan Bakti', 'irfan88@example.com', '+60123456789', '2019-08-07 08:13:21', '2019-08-07 08:13:21'),\n",
+        "    (2, 'Jack Smith', 'jack.smith@acme.io', '+60132456781', '2019-08-07 08:13:21', '2019-08-07 08:13:21'),\n",
+        "    (3, 'Nazir', NULL, '+601185434012', '2019-08-07 08:13:21', '2019-08-07 08:13:21'),\n",
+        "    (4, 'Faiz Ma', 'faiz.ma@jholow.cn', '+6019772002', '2019-08-07 08:13:21', '2019-08-07 08:13:21'),\n",
+        "    (5, 'Isham Rais', 'isham@pmo.gov.my', '+60135482020', '2019-08-07 08:13:21', '2019-08-07 08:13:21'),\n",
+        "    (6, 'Shanon Teoh', 'shahnon.teoh@st.com.sg', NULL, '2019-08-07 08:13:21', '2019-08-07 08:13:21')\n",
+        "\"\"\"\n",
+        "\n",
+        "invoices_data = \"\"\"\n",
+        "INSERT INTO data_questionnaire.invoices (id, number, sub_total, tax_total, total, customer_id, created_at, updated_at)\n",
+        "VALUES\n",
+        "    (1, '20190001', 30.00, 0.00, 30.00, 1, '2019-08-07 08:13:21', '2019-08-07 08:13:21'),\n",
+        "    (2, '20190002', 150.00, 0.00, 150.00, 2, '2019-08-07 08:13:21', '2019-08-07 08:13:21'),\n",
+        "    (3, '20190003', 30.00, 0.00, 30.00, 2, '2019-09-15 08:13:21', '2019-09-15 08:13:21'),\n",
+        "    (4, '20190004', 55.00, 0.00, 55.00, 3, '2019-09-15 08:13:21', '2019-09-15 08:13:21'),\n",
+        "    (5, '20190005', 450.00, 0.00, 0.00, 6, '2019-09-15 08:13:21', '2019-09-15 08:13:21')\n",
+        "\"\"\"\n",
+        "\n",
+        "invoice_lines_data = \"\"\"\n",
+        "INSERT INTO data_questionnaire.invoice_lines (id, description, unit_price, quantity, sub_total, tax_total, total, tax_id, sku_id, invoice_id)\n",
+        "VALUES\n",
+        "    (1, 'Book #1', 30.00, 1, 30.00, 0.00, 30.00, NULL, 1, 1),\n",
+        "    (2, 'Book #2', 25.00, 4, 100.00, 0.00, 100.00, NULL, 2, 2),\n",
+        "    (3, 'Book #3', 50.00, 1, 50.00, 0.00, 50.00, NULL, 3, 2),\n",
+        "    (4, 'Book #1', 30.00, 1, 30.00, 0.00, 30.00, NULL, 1, 3),\n",
+        "    (5, 'Book #1', 30.00, 1, 30.00, 0.00, 30.00, NULL, 1, 4),\n",
+        "    (6, 'Book #2', 25.00, 1, 25.00, 0.00, 25.00, NULL, 2, 4),\n",
+        "    (7, 'Book #1', 30.00, 5, 150.00, 0.00, 150.00, NULL, 1, 5),\n",
+        "    (8, 'Book #3', 50.00, 6, 300.00, 0.00, 300.00, NULL, 3, 5)\n",
+        "\"\"\"\n",
+        "\n",
+        "data_insertion_queries = [customers_data, invoices_data, invoice_lines_data]\n",
+        "\n",
+        "for data_query in data_insertion_queries:\n",
+        "    query_job = client.query(data_query)\n",
+        "    query_job.result()"
+      ],
+      "metadata": {
+        "id": "5e5R0Xr9kQ9L"
+      },
+      "execution_count": 12,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "query1 = \"\"\"\n",
+        "SELECT\n",
+        "  c.id AS customer_id,\n",
+        "  c.name AS customer_name,\n",
+        "  SUM(il.quantity) AS num_books_purchased\n",
+        "FROM\n",
+        "  data_questionnaire.customers c\n",
+        "JOIN\n",
+        "  data_questionnaire.invoices i ON c.id = i.customer_id\n",
+        "JOIN\n",
+        " data_questionnaire.invoice_lines il ON i.id = il.invoice_id\n",
+        "GROUP BY\n",
+        "  c.id, c.name\n",
+        "HAVING\n",
+        "  num_books_purchased > 5\n",
+        "\"\"\"\n",
+        "\n",
+        "query2 = \"\"\"\n",
+        "SELECT\n",
+        "  c.id AS customer_id,\n",
+        "  c.name AS customer_name\n",
+        "FROM\n",
+        "  data_questionnaire.customers c\n",
+        "LEFT JOIN\n",
+        "  data_questionnaire.invoices i ON c.id = i.customer_id\n",
+        "LEFT JOIN\n",
+        "  data_questionnaire.invoice_lines il ON i.id = il.invoice_id\n",
+        "WHERE\n",
+        "  il.id IS NULL\n",
+        "\"\"\"\n",
+        "\n",
+        "query3 = \"\"\"\n",
+        "SELECT\n",
+        "  c.id AS customer_id,\n",
+        "  c.name AS customer_name,\n",
+        "  il.id AS book_id,\n",
+        "  il.description AS book_description,\n",
+        "  il.quantity AS quantity\n",
+        "FROM\n",
+        "  data_questionnaire.customers c\n",
+        "JOIN\n",
+        "  data_questionnaire.invoices i ON c.id = i.customer_id\n",
+        "JOIN\n",
+        "  data_questionnaire.invoice_lines il ON i.id = il.invoice_id\n",
+        "\"\"\"\n",
+        "\n",
+        "# Execute queries and print results\n",
+        "result1 = client.query(query1).to_dataframe()\n",
+        "result2 = client.query(query2).to_dataframe()\n",
+        "result3 = client.query(query3).to_dataframe()\n",
+        "\n",
+        "# Print results\n",
+        "print(\"Query 1 Result:\")\n",
+        "print(result1)\n",
+        "\n",
+        "print(\"\\nQuery 2 Result:\")\n",
+        "print(result2)\n",
+        "\n",
+        "print(\"\\nQuery 3 Result:\")\n",
+        "print(result3)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "gWys2oAGkb9N",
+        "outputId": "311e35fa-d1ca-419c-e30a-921f84803e80"
+      },
+      "execution_count": 13,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Query 1 Result:\n",
+            "   customer_id customer_name  num_books_purchased\n",
+            "0            1   Irfan Bakti                    8\n",
+            "1            2    Jack Smith                   48\n",
+            "2            6   Shanon Teoh                   88\n",
+            "3            3         Nazir                   16\n",
+            "\n",
+            "Query 2 Result:\n",
+            "   customer_id customer_name\n",
+            "0            5    Isham Rais\n",
+            "1            4       Faiz Ma\n",
+            "2            5    Isham Rais\n",
+            "3            4       Faiz Ma\n",
+            "\n",
+            "Query 3 Result:\n",
+            "    customer_id customer_name  book_id book_description  quantity\n",
+            "0             3         Nazir        5          Book #1         1\n",
+            "1             3         Nazir        6          Book #2         1\n",
+            "2             3         Nazir        6          Book #2         1\n",
+            "3             3         Nazir        5          Book #1         1\n",
+            "4             3         Nazir        5          Book #1         1\n",
+            "..          ...           ...      ...              ...       ...\n",
+            "59            3         Nazir        5          Book #1         1\n",
+            "60            3         Nazir        5          Book #1         1\n",
+            "61            3         Nazir        6          Book #2         1\n",
+            "62            3         Nazir        6          Book #2         1\n",
+            "63            3         Nazir        5          Book #1         1\n",
+            "\n",
+            "[64 rows x 5 columns]\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
